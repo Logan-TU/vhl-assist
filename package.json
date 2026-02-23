@@ -1,0 +1,41 @@
+{
+  "name": "vhl-assist",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser extension to make VHL Central homework more accessible with audio transcription.",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build --mode production",
+    "clean": "rimraf dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Logan-TU/vhl-assist.git"
+  },
+  "keywords": [
+    "vhl",
+    "browser-extension",
+    "transcription",
+    "whisper",
+    "accessibility"
+  ],
+  "author": "Logan-TU",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Logan-TU/vhl-assist/issues"
+  },
+  "homepage": "https://github.com/Logan-TU/vhl-assist#readme",
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@types/chrome": "^0.1.37",
+    "sharp": "^0.33.5",
+    "terser": "^5.46.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-web-extension": "^4.5.0"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1"
+  }
+}

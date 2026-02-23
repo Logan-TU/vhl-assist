@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=360">
+  <title>VHL Assist</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <!-- Header -->
+    <header class="popup__header">
+      <img src="../icons/icon48.png" alt="" class="popup__logo" width="24" height="24">
+      <h1 class="popup__title">VHL Assist</h1>
+    </header>
+
+    <!-- Enable/Disable Toggle -->
+    <section class="popup__section">
+      <div class="popup__row">
+        <span class="popup__label">Enable on VHL Central</span>
+        <label class="toggle">
+          <input type="checkbox" id="enableToggle" checked>
+          <span class="toggle__slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Model Selection -->
+    <section class="popup__section">
+      <h2 class="popup__section-title">Transcription Model</h2>
+      <div class="popup__model-list" id="modelList">
+        <!-- Populated by popup.ts -->
+      </div>
+    </section>
+
+    <!-- Model Status -->
+    <section class="popup__section popup__section--status" id="modelStatusSection">
+      <div class="popup__status" id="modelStatus">
+        <span class="popup__status-text">Select a model to get started.</span>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="popup__footer">
+      <a href="#" id="optionsLink" class="popup__link">Settings & About</a>
+    </footer>
+  </div>
+
+  <script type="module" src="popup.ts"></script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+/* ──────────────────────────────────────────────────────────
+ *  VHL Assist — Options Page Styles
+ * ────────────────────────────────────────────────────────── */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #f0f2f5;
+  line-height: 1.5;
+}
+
+a {
+  color: #006bae;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Layout ────────────────────────────────────────────── */
+
+.options {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* Header */
+.options__header {
+  background: linear-gradient(135deg, #006bae, #004b7a);
+  color: #fff;
+  padding: 24px 0;
+  margin-bottom: 24px;
+}
+
+.options__header-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.options__title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.options__subtitle {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Main */
+.options__main {
+  padding: 0 24px;
+}
+
+/* Cards */
+.options__card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.options__card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #006bae;
+  margin-bottom: 12px;
+}
+
+.options__card-desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* Row */
+.options__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.options__label {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.options__hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* About table */
+.options__about-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.options__about-table td {
+  padding: 6px 0;
+  font-size: 13px;
+  vertical-align: top;
+}
+
+.options__about-label {
+  font-weight: 600;
+  color: #666;
+  width: 100px;
+  padding-right: 16px;
+}
+
+.options__credits {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.6;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+/* ── Toggle Switch ─────────────────────────────────────── */
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle__slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #ccc;
+  border-radius: 24px;
+  transition: background 0.2s;
+}
+
+.toggle__slider::before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle input:checked + .toggle__slider {
+  background: #006bae;
+}
+
+.toggle input:checked + .toggle__slider::before {
+  transform: translateX(20px);
+}
+
+/* ── Model Cards ───────────────────────────────────────── */
+
+.model-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: #fff;
+}
+
+.model-card:last-child {
+  margin-bottom: 0;
+}
+
+.model-card:hover {
+  border-color: #006bae;
+  background: #f5f8fc;
+}
+
+.model-card--selected {
+  border-color: #006bae;
+  background: #eef4fb;
+}
+
+.model-card__radio {
+  margin-top: 3px;
+  accent-color: #006bae;
+  flex-shrink: 0;
+}
+
+.model-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.model-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.model-card__name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.model-card__badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #006bae;
+  background: #e8f0fe;
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.model-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: #666;
+}
+
+.model-card__size {
+  color: #888;
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VHL Assist — Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options">
+    <!-- Header -->
+    <header class="options__header">
+      <div class="options__header-inner">
+        <img src="../icons/icon48.png" alt="" width="32" height="32">
+        <div>
+          <h1 class="options__title">VHL Assist</h1>
+          <p class="options__subtitle">Settings</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="options__main">
+      <!-- Enable/Disable -->
+      <section class="options__card">
+        <h2 class="options__card-title">General</h2>
+        <div class="options__row">
+          <div>
+            <span class="options__label">Enable VHL Assist</span>
+            <p class="options__hint">Show transcription buttons on VHL Central activity pages.</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="enableToggle" checked>
+            <span class="toggle__slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Model Selection -->
+      <section class="options__card">
+        <h2 class="options__card-title">Transcription Model</h2>
+        <p class="options__card-desc">
+          Choose a Whisper model for audio transcription. Larger models produce more accurate results
+          but require a bigger download and more processing time. Models are downloaded once on first use
+          and cached locally in your browser.
+        </p>
+        <div class="options__model-list" id="modelList">
+          <!-- Populated by options.ts -->
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="options__card">
+        <h2 class="options__card-title">About</h2>
+        <table class="options__about-table">
+          <tr>
+            <td class="options__about-label">Extension</td>
+            <td id="aboutName">VHL Assist</td>
+          </tr>
+          <tr>
+            <td class="options__about-label">Version</td>
+            <td id="aboutVersion">—</td>
+          </tr>
+          <tr>
+            <td class="options__about-label">Description</td>
+            <td id="aboutDesc">—</td>
+          </tr>
+          <tr>
+            <td class="options__about-label">Source</td>
+            <td>
+              <a href="https://github.com/Logan-TU/vhl-assist" target="_blank" rel="noopener">
+                GitHub — Logan-TU/vhl-assist
+              </a>
+            </td>
+          </tr>
+        </table>
+        <p class="options__credits">
+          Powered by <a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener">Transformers.js</a>
+          and <a href="https://github.com/openai/whisper" target="_blank" rel="noopener">OpenAI Whisper</a>.
+          All transcription runs locally in your browser — no data is sent to any server.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="options.ts"></script>
+</body>
+</html>
