@@ -9,7 +9,6 @@ import {
   MSG,
   STORAGE_KEYS,
   DEFAULTS,
-  type ModelKey,
 } from "../shared/types";
 
 // ── State ───────────────────────────────────────────────
@@ -76,11 +75,6 @@ async function handleTranscribeRequest(
     }
     const audioData = await response.arrayBuffer();
 
-    // 3. Get user's model preference
-    const storage = await chrome.storage.local.get(STORAGE_KEYS.MODEL_KEY);
-    const modelKey: ModelKey =
-      (storage[STORAGE_KEYS.MODEL_KEY] as ModelKey) || DEFAULTS.modelKey;
-
     // 4. Ensure offscreen document exists
     await ensureOffscreenDocument();
 
@@ -101,7 +95,6 @@ async function handleTranscribeRequest(
     chrome.runtime.sendMessage({
       type: MSG.OFFSCREEN_TRANSCRIBE,
       audioBase64: base64Audio,
-      modelKey,
       requestId,
       tabId,
     });
@@ -175,10 +168,8 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
-    // Set defaults on first install
     chrome.storage.local.set({
       [STORAGE_KEYS.ENABLED]: DEFAULTS.enabled,
-      [STORAGE_KEYS.MODEL_KEY]: DEFAULTS.modelKey,
     });
   }
 });
