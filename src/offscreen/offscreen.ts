@@ -35,22 +35,53 @@ if (onnx?.wasm) {
 let cachedPipeline: AutomaticSpeechRecognitionPipeline | null = null;
 let pipelineLoading = false;
 
+/** Queue for sequential transcription (Whisper is single-threaded). */
+interface QueueItem {
+  audioBase64: string;
+  requestId: string;
+  tabId: number;
+}
+const pendingQueue: QueueItem[] = [];
+let queueRunning = false;
+
 // ── Message Listener ────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message?.type === MSG.OFFSCREEN_TRANSCRIBE) {
-    handleTranscription(message).catch((err) => {
-      console.error("[VHL Assist] Transcription error:", err);
-      send({
-        type: MSG.TRANSCRIBE_ERROR,
-        requestId: message.requestId,
-        tabId: message.tabId,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    });
+    enqueueTranscription(message);
   }
   return false;
 });
+
+// ── Transcription Queue ─────────────────────────────────
+
+function enqueueTranscription(msg: QueueItem & { type: string }): void {
+  const { audioBase64, requestId, tabId } = msg;
+  pendingQueue.push({ audioBase64, requestId, tabId });
+  processQueue();
+}
+
+async function processQueue(): Promise<void> {
+  if (queueRunning) return; // already draining
+  queueRunning = true;
+
+  while (pendingQueue.length > 0) {
+    const item = pendingQueue.shift()!;
+    try {
+      await handleTranscription(item);
+    } catch (err) {
+      console.error("[VHL Assist] Transcription error:", err);
+      send({
+        type: MSG.TRANSCRIBE_ERROR,
+        requestId: item.requestId,
+        tabId: item.tabId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  queueRunning = false;
+}
 
 // ── Transcription Handler ───────────────────────────────
 
@@ -101,6 +132,7 @@ async function handleTranscription(msg: {
   }
 
   // 5. Done
+  lastProgressTMap.delete(requestId);
   send({
     type: MSG.TRANSCRIBE_COMPLETE,
     requestId,
@@ -120,8 +152,16 @@ async function getOrCreatePipeline(
     return cachedPipeline;
   }
 
+  // If another request already started loading, wait for it
   if (pipelineLoading) {
-    throw new Error("Model is loading. Please wait and try again.");
+    progress(requestId, tabId, "model-loading", 10, "Waiting for model to finish loading…");
+    while (pipelineLoading) {
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    if (cachedPipeline) {
+      progress(requestId, tabId, "model-loading", 55, "Model ready.");
+      return cachedPipeline;
+    }
   }
 
   pipelineLoading = true;
@@ -229,14 +269,14 @@ async function detectBestDevice(): Promise<"webgpu" | "wasm"> {
 
 // ── Communication ───────────────────────────────────────
 
-let lastProgressT = 0;
+const lastProgressTMap = new Map<string, number>();
 
 function progressThrottled(
   rid: string, tid: number, stage: string, pct: number, msg: string,
 ): void {
   const now = Date.now();
-  if (now - lastProgressT < 300) return;
-  lastProgressT = now;
+  if (now - (lastProgressTMap.get(rid) ?? 0) < 300) return;
+  lastProgressTMap.set(rid, now);
   progress(rid, tid, stage, pct, msg);
 }
 

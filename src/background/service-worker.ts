@@ -14,6 +14,7 @@ import {
 // ── State ───────────────────────────────────────────────
 
 let offscreenDocumentCreated = false;
+let offscreenCreatingPromise: Promise<void> | null = null;
 
 // ── Message Listener ────────────────────────────────────
 
@@ -115,24 +116,38 @@ async function handleTranscribeRequest(
 async function ensureOffscreenDocument(): Promise<void> {
   if (offscreenDocumentCreated) return;
 
-  // Check if one already exists (e.g., after service worker restart)
-  const existingContexts = await chrome.runtime.getContexts({
-    contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
-    documentUrls: [chrome.runtime.getURL("offscreen/offscreen.html")],
-  });
-
-  if (existingContexts.length > 0) {
-    offscreenDocumentCreated = true;
+  // If another call is already creating the document, wait for it
+  if (offscreenCreatingPromise) {
+    await offscreenCreatingPromise;
     return;
   }
 
-  await chrome.offscreen.createDocument({
-    url: "offscreen/offscreen.html",
-    reasons: [chrome.offscreen.Reason.WORKERS],
-    justification:
-      "Run Whisper speech-to-text model via ONNX Runtime Web for audio transcription.",
-  });
-  offscreenDocumentCreated = true;
+  offscreenCreatingPromise = (async () => {
+    // Check if one already exists (e.g., after service worker restart)
+    const existingContexts = await chrome.runtime.getContexts({
+      contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+      documentUrls: [chrome.runtime.getURL("offscreen/offscreen.html")],
+    });
+
+    if (existingContexts.length > 0) {
+      offscreenDocumentCreated = true;
+      return;
+    }
+
+    await chrome.offscreen.createDocument({
+      url: "offscreen/offscreen.html",
+      reasons: [chrome.offscreen.Reason.WORKERS],
+      justification:
+        "Run Whisper speech-to-text model via ONNX Runtime Web for audio transcription.",
+    });
+    offscreenDocumentCreated = true;
+  })();
+
+  try {
+    await offscreenCreatingPromise;
+  } finally {
+    offscreenCreatingPromise = null;
+  }
 }
 
 // ── Forward Messages to Content Script ──────────────────

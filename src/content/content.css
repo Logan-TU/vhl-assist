@@ -205,3 +205,101 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+/* ── Batch "Transcribe All" Button ─────────────────────── */
+
+.vhl-assist-btn--batch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 16px;
+  padding: 8px 20px;
+  width: auto;
+}
+
+/* ── Inline Transcript (recording activities) ──────────── */
+
+.vhl-assist-inline-transcript {
+  padding: 8px 0 4px;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.vhl-assist-inline-transcript--hidden {
+  display: none;
+}
+
+/* Loading state */
+.vhl-assist-inline-transcript__loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vhl-assist-inline-transcript__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #006bae;
+  border-radius: 50%;
+  animation: vhl-assist-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.vhl-assist-inline-transcript__status {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Result state */
+.vhl-assist-inline-transcript__result {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.vhl-assist-inline-transcript__text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+  flex: 1;
+}
+
+.vhl-assist-inline-transcript__copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.vhl-assist-inline-transcript__copy:hover {
+  background: #e8e8e8;
+  color: #333;
+}
+
+.vhl-assist-inline-transcript__copy--done {
+  color: #1D873E !important;
+}
+
+/* Error state */
+.vhl-assist-inline-transcript__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #c0392b;
+}
+
+.vhl-assist-inline-transcript__error-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
