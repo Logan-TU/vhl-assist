@@ -26,6 +26,9 @@ const MODEL_ID = "onnx-community/whisper-small";
 env.allowRemoteModels = true;
 env.allowLocalModels = false;
 
+// Suppress ONNX Runtime execution provider warnings (nodes falling back to CPU is normal)
+env.logLevel = "error";
+
 // Point ONNX Runtime to local WASM/worker files (CDN is blocked by CSP).
 // The Vite build also rewrites CDN URLs as a safety net.
 const localWasmDir = chrome.runtime.getURL("/");
