@@ -9,6 +9,7 @@ import {
   MSG,
   STORAGE_KEYS,
   DEFAULTS,
+  isTranscriptionLanguage,
 } from "../shared/types";
 
 // ── State ───────────────────────────────────────────────
@@ -92,12 +93,20 @@ async function handleTranscribeRequest(
     // We can't send ArrayBuffer directly via chrome.runtime.sendMessage,
     // so we convert to a transferable format (base64).
     const base64Audio = arrayBufferToBase64(audioData);
+    const storage = await chrome.storage.local.get([
+      STORAGE_KEYS.TRANSCRIPTION_LANGUAGE,
+    ]);
+    const languageRaw = storage[STORAGE_KEYS.TRANSCRIPTION_LANGUAGE];
+    const language = isTranscriptionLanguage(languageRaw)
+      ? languageRaw
+      : DEFAULTS.transcriptionLanguage;
 
     chrome.runtime.sendMessage({
       type: MSG.OFFSCREEN_TRANSCRIBE,
       audioBase64: base64Audio,
       requestId,
       tabId,
+      language,
     });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
@@ -185,6 +194,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
     chrome.storage.local.set({
       [STORAGE_KEYS.ENABLED]: DEFAULTS.enabled,
+      [STORAGE_KEYS.TRANSCRIPTION_LANGUAGE]: DEFAULTS.transcriptionLanguage,
     });
   }
 });

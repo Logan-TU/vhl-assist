@@ -43,10 +43,35 @@ export type ProgressMessage = TranscribeProgress | TranscribeComplete | Transcri
 
 export const STORAGE_KEYS = {
   ENABLED: "vhlAssist_enabled",
+  TRANSCRIPTION_LANGUAGE: "vhlAssist_transcriptionLanguage",
 } as const;
+
+// ── Transcription settings ───────────────────────────────
+
+export const TRANSCRIPTION_LANGUAGES = [
+  "auto",
+  "english",
+  "german",
+  "spanish",
+  "french",
+  "italian",
+  "portuguese",
+] as const;
+
+export type TranscriptionLanguage = (typeof TRANSCRIPTION_LANGUAGES)[number];
+
+export function isTranscriptionLanguage(
+  value: unknown
+): value is TranscriptionLanguage {
+  return (
+    typeof value === "string" &&
+    (TRANSCRIPTION_LANGUAGES as readonly string[]).includes(value)
+  );
+}
 
 // ── Defaults ────────────────────────────────────────────
 
 export const DEFAULTS = {
   enabled: true,
+  transcriptionLanguage: "auto" as TranscriptionLanguage,
 } as const;

@@ -10,7 +10,12 @@ import {
   env,
 } from "@huggingface/transformers";
 
-import { MSG } from "../shared/types";
+import {
+  MSG,
+  DEFAULTS,
+  isTranscriptionLanguage,
+  type TranscriptionLanguage,
+} from "../shared/types";
 
 // ── Constants ───────────────────────────────────────────
 
@@ -40,6 +45,7 @@ interface QueueItem {
   audioBase64: string;
   requestId: string;
   tabId: number;
+  language: TranscriptionLanguage;
 }
 const pendingQueue: QueueItem[] = [];
 let queueRunning = false;
@@ -56,8 +62,15 @@ chrome.runtime.onMessage.addListener((message) => {
 // ── Transcription Queue ─────────────────────────────────
 
 function enqueueTranscription(msg: QueueItem & { type: string }): void {
-  const { audioBase64, requestId, tabId } = msg;
-  pendingQueue.push({ audioBase64, requestId, tabId });
+  const { audioBase64, requestId, tabId, language } = msg;
+  pendingQueue.push({
+    audioBase64,
+    requestId,
+    tabId,
+    language: isTranscriptionLanguage(language)
+      ? language
+      : DEFAULTS.transcriptionLanguage,
+  });
   processQueue();
 }
 
@@ -89,8 +102,9 @@ async function handleTranscription(msg: {
   audioBase64: string;
   requestId: string;
   tabId: number;
+  language: TranscriptionLanguage;
 }): Promise<void> {
-  const { audioBase64, requestId, tabId } = msg;
+  const { audioBase64, requestId, tabId, language } = msg;
 
   // 1. Get or create pipeline
   const pipe = await getOrCreatePipeline(requestId, tabId);
@@ -102,10 +116,9 @@ async function handleTranscription(msg: {
   // 3. Transcribe
   progress(requestId, tabId, "transcribing", 70, "Transcribing…");
 
-  const result = await pipe(audioData, {
-    language: "german",
+  const baseOptions = {
     task: "transcribe",
-    chunk_length_s: 30,
+    chunk_length_s: 29,
     stride_length_s: 5,
     return_timestamps: false,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -119,7 +132,10 @@ async function handleTranscription(msg: {
         }
       } catch { /* non-critical */ }
     },
-  });
+  };
+  const options =
+    language === "auto" ? baseOptions : { ...baseOptions, language };
+  const result = await pipe(audioData, options);
 
   // 4. Extract text
   let transcript: string;
