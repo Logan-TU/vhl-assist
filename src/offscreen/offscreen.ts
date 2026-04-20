@@ -118,8 +118,8 @@ async function handleTranscription(msg: {
 
   const baseOptions = {
     task: "transcribe",
-    chunk_length_s: 29,
-    stride_length_s: 5,
+    chunk_length_s: 20,
+    stride_length_s: 8,
     return_timestamps: false,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback_function: (beams: any) => {

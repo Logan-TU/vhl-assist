@@ -299,6 +299,128 @@
   color: #c0392b;
 }
 
+/* ── Video Transcript Panel ────────────────────────────── */
+
+.vhl-assist-transcript-panel {
+  margin: 16px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fdfdfd;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+}
+
+.vhl-assist-transcript-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #f5f7fa;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+
+.vhl-assist-transcript-panel__title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #006bae;
+}
+
+.vhl-assist-transcript-panel__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  margin-left: 12px;
+}
+
+.vhl-assist-transcript-panel__search {
+  flex: 1;
+  min-width: 150px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  color: #333;
+  transition: border-color 0.15s;
+}
+
+.vhl-assist-transcript-panel__search:focus {
+  outline: none;
+  border-color: #006bae;
+  box-shadow: 0 0 0 2px rgba(0, 107, 174, 0.1);
+}
+
+.vhl-assist-transcript-panel__close {
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.vhl-assist-transcript-panel__close:hover {
+  color: #333;
+}
+
+.vhl-assist-transcript-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+}
+
+.vhl-assist-transcript-panel__captions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vhl-assist-transcript-cue {
+  padding: 8px 10px;
+  border-left: 3px solid #e8e8e8;
+  background: #fff;
+  border-radius: 3px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.vhl-assist-transcript-cue:hover {
+  background: #f0f4f8;
+  border-left-color: #006bae;
+}
+
+.vhl-assist-transcript-cue--active {
+  background: #e8f1f8;
+  border-left-color: #006bae;
+  font-weight: 600;
+  color: #004b7a;
+}
+
+.vhl-assist-transcript-cue--highlighted {
+  background: #fffae8;
+  border-left-color: #ffc107;
+}
+
+.vhl-assist-transcript-cue--hidden {
+  display: none;
+}
+
 .vhl-assist-inline-transcript__error-icon {
   flex-shrink: 0;
   font-size: 14px;

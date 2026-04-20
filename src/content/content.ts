@@ -15,6 +15,7 @@ import {
   type TranscribeError,
   type ProgressMessage,
 } from "../shared/types";
+import { initVideoSubtitles } from "./video-subtitles";
 
 // ── State ───────────────────────────────────────────────
 
@@ -34,8 +35,12 @@ const activeRequests = new Map<
     button: HTMLButtonElement;
     panel: HTMLElement;
     audioEl?: HTMLAudioElement;
+    audioUrl: string;
   }
 >();
+
+/** Transcript cache: map from audio URL → transcript text. */
+const transcriptCache = new Map<string, string>();
 
 /** Track batch transcription state. */
 interface BatchState {
@@ -53,9 +58,10 @@ async function init(): Promise<void> {
   const enabled = storage[STORAGE_KEYS.ENABLED] ?? DEFAULTS.enabled;
   if (!enabled) return;
 
-  // Scan for both activity types
+  // Scan for all activity types
   scanForAudioElements();
   scanForRecordingActivities();
+  initVideoSubtitles();
 
   // Watch for dynamically-added elements (VHL is SPA-like)
   const observer = new MutationObserver(() => {
@@ -170,7 +176,7 @@ async function handleTranscribeAllClick(
   if (items.length === 0) return;
 
   // Collect audio URLs and prepare state
-  const requests: { item: HTMLElement; audioUrl: string; requestId: string }[] = [];
+  const requests: { item: HTMLElement; audioUrl: string; requestId: string; hasCached: boolean }[] = [];
   items.forEach((item) => {
     try {
       const promptData = JSON.parse(item.dataset.prompt || "{}");
@@ -178,7 +184,8 @@ async function handleTranscribeAllClick(
       if (!audioUrl) return;
 
       const requestId = `batch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      requests.push({ item, audioUrl, requestId });
+      const hasCached = transcriptCache.has(audioUrl);
+      requests.push({ item, audioUrl, requestId, hasCached });
     } catch { /* skip malformed data-prompt */ }
   });
 
@@ -198,33 +205,44 @@ async function handleTranscribeAllClick(
   };
 
   // Register each request and send to service worker
-  for (const { item, audioUrl, requestId } of requests) {
-    batchRequestIds.add(requestId);
-
+  for (const { item, audioUrl, requestId, hasCached } of requests) {
     // Transcript placeholder is a sibling after the item, not inside it
     const questionId = item.dataset.questionId || "";
     const panel = item.parentElement?.querySelector<HTMLElement>(
       `.vhl-assist-inline-transcript[data-question-id="${questionId}"]`
     ) || item.nextElementSibling as HTMLElement | null;
-    if (panel) {
-      showInlineLoading(panel, "Waiting…");
-    }
 
-    activeRequests.set(requestId, {
-      button: batchButton,
-      panel: panel || document.createElement("div"),
-    });
-
-    // Fire all requests — service worker handles fetch, offscreen queues transcription
-    try {
-      await chrome.runtime.sendMessage({
-        type: MSG.TRANSCRIBE_REQUEST,
-        audioUrl,
-        requestId,
-      });
-    } catch (err) {
-      if (panel) showInlineError(panel, `Failed: ${String(err)}`);
+    if (hasCached) {
+      // Use cached transcript
+      const cached = transcriptCache.get(audioUrl)!;
+      if (panel) {
+        showInlineResult(panel, cached);
+      }
       batchItemDone(requestId);
+    } else {
+      // Queue for transcription
+      batchRequestIds.add(requestId);
+      if (panel) {
+        showInlineLoading(panel, "Waiting…");
+      }
+
+      activeRequests.set(requestId, {
+        button: batchButton,
+        panel: panel || document.createElement("div"),
+        audioUrl,
+      });
+
+      // Fire request — service worker handles fetch, offscreen queues transcription
+      try {
+        await chrome.runtime.sendMessage({
+          type: MSG.TRANSCRIBE_REQUEST,
+          audioUrl,
+          requestId,
+        });
+      } catch (err) {
+        if (panel) showInlineError(panel, `Failed: ${String(err)}`);
+        batchItemDone(requestId);
+      }
     }
   }
 }
@@ -274,17 +292,45 @@ async function handleTranscribeClick(
 ): Promise<void> {
   // Prevent double-clicks
   if (button.classList.contains("vhl-assist-btn--loading")) return;
+
+  const panel = getOrCreateTranscriptPanel(audioEl);
+
+  // Check if we're toggling visibility of a cached transcript
+  if (button.dataset.cached === "true") {
+    const isHidden = panel.classList.contains("vhl-assist-panel--hidden");
+    if (isHidden) {
+      // Show cached transcript
+      panel.classList.remove("vhl-assist-panel--hidden");
+      button.querySelector<HTMLSpanElement>(".vhl-assist-btn__label")!.textContent =
+        "Hide Transcript";
+    } else {
+      // Hide transcript
+      panel.classList.add("vhl-assist-panel--hidden");
+      button.querySelector<HTMLSpanElement>(".vhl-assist-btn__label")!.textContent =
+        "Show Transcript";
+    }
+    return;
+  }
+
+  // Check cache before transcribing
+  const cached = transcriptCache.get(audioUrl);
+  if (cached) {
+    showPanelResult(panel, cached);
+    button.dataset.cached = "true";
+    button.querySelector<HTMLSpanElement>(".vhl-assist-btn__label")!.textContent =
+      "Hide Transcript";
+    return;
+  }
+
+  // Proceed with transcription
   button.classList.add("vhl-assist-btn--loading");
   button.querySelector<HTMLSpanElement>(".vhl-assist-btn__label")!.textContent =
     "Starting…";
-
-  // Create or reuse the transcript panel
-  const panel = getOrCreateTranscriptPanel(audioEl);
   showPanelLoading(panel, "Initializing transcription…");
 
   // Generate a unique request ID
   const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  activeRequests.set(requestId, { button, panel, audioEl });
+  activeRequests.set(requestId, { button, panel, audioEl, audioUrl });
 
   // Send request to service worker
   try {
@@ -439,7 +485,7 @@ function handleServiceWorkerMessage(
   const request = activeRequests.get(requestId);
   if (!request) return;
 
-  const { button, panel } = request;
+  const { button, panel, audioUrl } = request;
   const isBatch = activeBatch?.requestIds.has(requestId) ?? false;
 
   switch (message.type) {
@@ -465,11 +511,19 @@ function handleServiceWorkerMessage(
     }
     case MSG.TRANSCRIBE_COMPLETE: {
       const msg = message as TranscribeComplete;
+      // Cache the transcript
+      if (audioUrl) {
+        transcriptCache.set(audioUrl, msg.transcript);
+      }
       if (isBatch) {
         showInlineResult(panel, msg.transcript);
         batchItemDone(requestId);
       } else {
         showPanelResult(panel, msg.transcript);
+        // Mark button as cached and update label
+        button.dataset.cached = "true";
+        button.querySelector<HTMLSpanElement>(".vhl-assist-btn__label")!.textContent =
+          "Hide Transcript";
         resetButton(button);
       }
       activeRequests.delete(requestId);
@@ -559,9 +613,14 @@ function showInlineError(el: HTMLElement, error: string): void {
 // ── Utilities ───────────────────────────────────────────
 
 function resetButton(button: HTMLButtonElement): void {
-  button.classList.remove("vhl-assist-btn--loading");
-  button.querySelector<HTMLSpanElement>(".vhl-assist-btn__label")!.textContent =
-    "Transcribe";
+  // Only reset if not cached (keep show/hide state for cached transcripts)
+  if (button.dataset.cached !== "true") {
+    button.classList.remove("vhl-assist-btn--loading");
+    button.querySelector<HTMLSpanElement>(".vhl-assist-btn__label")!.textContent =
+      "Transcribe";
+  } else {
+    button.classList.remove("vhl-assist-btn--loading");
+  }
 }
 
 function escapeHtml(text: string): string {
