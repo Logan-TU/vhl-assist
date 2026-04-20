@@ -145,7 +145,7 @@ async function ensureOffscreenDocument(): Promise<void> {
 
     await chrome.offscreen.createDocument({
       url: "offscreen/offscreen.html",
-      reasons: [chrome.offscreen.Reason.WORKERS],
+      reasons: [chrome.offscreen.Reason.BLOBS],
       justification:
         "Run Whisper speech-to-text model via ONNX Runtime Web for audio transcription.",
     });

@@ -13,6 +13,7 @@ export const MSG = {
   TRANSCRIBE_PROGRESS: "TRANSCRIBE_PROGRESS",
   TRANSCRIBE_COMPLETE: "TRANSCRIBE_COMPLETE",
   TRANSCRIBE_ERROR: "TRANSCRIBE_ERROR",
+  GET_MODEL_STATUS: "GET_MODEL_STATUS",
 } as const;
 
 // ── Message payloads ────────────────────────────────────
